@@ -34,7 +34,11 @@ class Result(PageRegion):
     _name_locator = (By.CSS_SELECTOR, '.info > h3')
     _author_locator = (By.CSS_SELECTOR, '.info .author')
     _install_button_locator = (By.CSS_SELECTOR, '.button.product.install')
-    _price_locator = (By.CSS_SELECTOR, '.premium.button.product')
+    _price_locator = (By.CSS_SELECTOR, '.info .price')
+
+    @property
+    def full_text(self):
+        return self.root_element.text
 
     @property
     def name(self):

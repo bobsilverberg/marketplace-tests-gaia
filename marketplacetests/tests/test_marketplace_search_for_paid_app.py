@@ -9,22 +9,15 @@ from marketplacetests.marketplace.app import Marketplace
 
 class TestSearchMarketplacePaidApp(MarketplaceGaiaTestCase):
 
-    # System app confirmation button to confirm installing an app
-
     def test_search_paid_app(self):
         marketplace = Marketplace(self.marionette, 'Marketplace Dev')
         marketplace.launch()
 
-        results = marketplace.search('')
-
-        self.assertGreater(len(results.search_results), 0, 'No results found.')
-
-        filter = results.tap_filter()
-        filter.by_price('paid')
-        results = filter.tap_apply()
+        results = marketplace.search(':paid')
 
         self.assertGreater(len(results.search_results), 0, 'No results found.')
 
         for result in results.search_results:
-            self.assertTrue(re.match('^\$\d+\.\d{2}', result.price),
-                            "App %s it's not a paid app." % result.name)
+            print 'The text of the result element is: %s' % result.full_text
+            print 'The price seems to be: %s' % result.price
+            print 'The length of price is: %s' % len(result.price)
