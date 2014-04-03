@@ -4,24 +4,27 @@
 
 import time
 import re
+
 from marionette.keys import Keys
 from marionette.by import By
 from gaiatest.apps.base import Base
 
+from marketplacetests.keyboard.app import Keyboard
 
-class Bango(Base):
 
-    _payment_frame_locator = (By.CSS_SELECTOR, "div#trustedui-frame-container > iframe")
+class Payment(Base):
+
+    _payment_frame_locator = (By.CSS_SELECTOR, "#trustedui-frame-container > iframe")
 
     # id_pin is the 4 digit security code to secure your identity
     # sms_pin is the PIN received in SMS to validate the network connection
 
-    # Enter/confirm PIN
-    _enter_id_pin_locator = (By.ID, 'enter-pin')
-    _enter_id_pin_input_locator = (By.CSS_SELECTOR, 'div.pinbox span')
-    _enter_id_pin_section_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/create"]')
-    _confirm_id_pin_section_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/confirm"]')
-    _confirm_id_pin_continue_button_locator = (By.CSS_SELECTOR, '#pin > footer > button')
+    # Create/confirm PIN
+    _create_pin_form_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/create"]')
+    _pin_input_locator = (By.CSS_SELECTOR, 'div.pinbox span')
+    # _pin_input_locator = (By.ID, 'id_pin')
+    _confirm_pin_form_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/confirm"]')
+    _pin_continue_button_locator = (By.CSS_SELECTOR, '#pin > footer > button')
 
     # Enter mobile network/number/country locators
     _number_section_locator = (By.ID, 'numberSection')
@@ -60,12 +63,12 @@ class Bango(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.switch_to_bango_frame()
+        self.switch_to_payment_frame()
 
     def launch(self):
-        self.switch_to_bango_frame()
+        self.switch_to_payment_frame()
 
-    def switch_to_bango_frame(self):
+    def switch_to_payment_frame(self):
         self.marionette.switch_to_frame()
         self.wait_for_element_present(*self._payment_frame_locator)
         payment_iframe = self.marionette.find_element(*self._payment_frame_locator)
@@ -73,20 +76,20 @@ class Bango(Base):
 
     def create_pin(self, pin):
         """
-        A helper method to carry out the Bango PIN creation flow
+        A helper method to carry out the Payment PIN creation flow
         """
 
         # create pin workflow
-        self.wait_for_enter_id_pin_section_displayed()
+        self.wait_for_create_pin_form_displayed()
 
         # tap and enter the pin for the first time
-        self.type_id_pin_number(pin)
-        self.tap_confirm_id_pin_continue()
-        self.wait_for_confirm_id_pin_section_displayed()
+        self.type_pin_number(pin)
+        self.tap_pin_continue()
+        self.wait_for_confirm_pin_form_displayed()
 
         # enter the pin code for the second time
-        self.type_id_pin_number(pin)
-        self.tap_confirm_id_pin_continue()
+        self.type_pin_number(pin)
+        self.tap_pin_continue()
 
     def verify_phone_number(self, mobile_phone_number, country, network):
         """
@@ -121,7 +124,7 @@ class Bango(Base):
         m = re.search("PIN: ([0-9]+).", notification_toaster.text)
         pin_number = m.group(1)
 
-        self.switch_to_bango_frame()
+        self.switch_to_payment_frame()
 
         self.wait_for_sms_pin_section_displayed()
 
@@ -130,7 +133,7 @@ class Bango(Base):
         self.tap_confirm_sms_pin_button()
 
         self.marionette.switch_to_frame()
-        self.switch_to_bango_frame()
+        self.switch_to_payment_frame()
 
     def pay_using_credit_card(self, card_number, expiry, cvv, save_card=False):
         self.wait_for_element_displayed(*self._card_number_locator)
@@ -148,12 +151,12 @@ class Bango(Base):
         self.marionette.find_element(*self._fake_payment_button_locator).tap()
         time.sleep(1)
 
-    def wait_for_enter_id_pin_section_displayed(self):
-        self.wait_for_element_displayed(*self._enter_id_pin_section_locator)
+    def wait_for_create_pin_form_displayed(self):
+        self.wait_for_element_displayed(*self._create_pin_form_locator)
         time.sleep(2)
 
-    def wait_for_confirm_id_pin_section_displayed(self):
-        self.wait_for_element_displayed(*self._confirm_id_pin_section_locator)
+    def wait_for_confirm_pin_form_displayed(self):
+        self.wait_for_element_displayed(*self._confirm_pin_form_locator)
         time.sleep(2)
 
     def wait_for_confirm_number_section_displayed(self):
@@ -169,15 +172,16 @@ class Bango(Base):
         self.wait_for_element_displayed(*self._buy_button_locator)
         time.sleep(2)
 
-    def type_id_pin_number(self, pin):
-        self.marionette.find_element(*self._enter_id_pin_input_locator).tap()
-        time.sleep(1)
-        self.keyboard.send(pin)
-        # Switch back to Bango frame
-        self.switch_to_bango_frame()
+    def type_pin_number(self, pin):
+        keyboard = Keyboard(self.marionette)
+        self.marionette.find_element(*self._pin_input_locator).tap()
+        keyboard.switch_to_keyboard()
+        for num in pin:
+            keyboard._tap(num)
+        self.switch_to_payment_frame()
 
-    def tap_confirm_id_pin_continue(self):
-        self.marionette.find_element(*self._confirm_id_pin_continue_button_locator).tap()
+    def tap_pin_continue(self):
+        self.marionette.find_element(*self._pin_continue_button_locator).tap()
         time.sleep(1)
 
     @property
@@ -250,7 +254,7 @@ class Bango(Base):
         # Wait for select box to close.
         self.wait_for_element_not_displayed(*self._close_button_locator)
         time.sleep(1)
-        self.switch_to_bango_frame()
+        self.switch_to_payment_frame()
 
     def tap_mobile_section_continue_button(self):
         self.marionette.find_element(*self._mobile_section_continue_button_locator).tap()
