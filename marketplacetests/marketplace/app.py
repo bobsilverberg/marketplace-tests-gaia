@@ -35,14 +35,13 @@ class Marketplace(Base):
     _search_locator = (By.ID, 'search-q')
     _signed_in_notification_locator = (By.CSS_SELECTOR, '#notification.show')
 
+    # System app notification install message
+    _notification_install_locator = (By.CSS_SELECTOR, '#system-banner > p')
+
     def __init__(self, marionette, app_name=False):
         Base.__init__(self, marionette)
         if app_name:
             self.name = app_name
-
-    def switch_to_marketplace_frame(self):
-        """Only Marketplace production has a frame for the app."""
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._marketplace_iframe_locator))
 
     def launch(self):
         Base.launch(self, launch_timeout=120000)
@@ -154,3 +153,9 @@ class Marketplace(Base):
     def submit_feedback(self):
         self.wait_for_element_displayed(*self._feedback_submit_button_locator)
         self.marionette.find_element(*self._feedback_submit_button_locator).tap()
+
+    @property
+    def install_notification_message(self):
+        self.marionette.switch_to_frame()
+        self.wait_for_element_displayed(*self._notification_install_locator)
+        return self.marionette.find_element(*self._notification_install_locator).text
