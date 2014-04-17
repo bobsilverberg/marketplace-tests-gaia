@@ -12,6 +12,9 @@ class TestSearchMarketplacePaidApp(MarketplaceGaiaTestCase):
 
         APP_NAME = 'Test Zippy With Me'
 
+        if self.apps.is_app_installed(APP_NAME):
+            self.apps.uninstall(APP_NAME)
+
         marketplace = Marketplace(self.marionette, 'Marketplace Dev')
         marketplace.launch()
 

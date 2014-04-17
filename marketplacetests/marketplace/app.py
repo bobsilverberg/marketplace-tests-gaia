@@ -40,10 +40,6 @@ class Marketplace(Base):
         if app_name:
             self.name = app_name
 
-    def switch_to_marketplace_frame(self):
-        """Only Marketplace production has a frame for the app."""
-        self.marionette.switch_to_frame(self.marionette.find_element(*self._marketplace_iframe_locator))
-
     def launch(self):
         Base.launch(self, launch_timeout=120000)
         self.wait_for_element_not_displayed(*self._loading_fragment_locator)
