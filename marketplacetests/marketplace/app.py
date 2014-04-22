@@ -15,7 +15,7 @@ class Marketplace(Base):
     _marketplace_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
 
     _gallery_apps_locator = (By.CSS_SELECTOR, '#gallery .app')
-    _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
+    _loading_fragment_locator = (By.CSS_SELECTOR, 'div.throbber')
     _offline_message_locator = (By.CSS_SELECTOR, 'div.offline-message')
     _settings_button_locator = (By.CSS_SELECTOR, 'a.header-button.settings')
     _home_button_locator = (By.CSS_SELECTOR, 'h1.site a')
@@ -50,9 +50,6 @@ class Marketplace(Base):
 
     def switch_to_marketplace_frame(self):
         self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._marketplace_frame_locator)
-        marketplace_frame = self.marionette.find_element(*self._marketplace_frame_locator)
-        self.marionette.switch_to_frame(marketplace_frame)
         self.wait_for_element_present(*self._marketplace_frame_locator)
         marketplace_frame = self.marionette.find_element(*self._marketplace_frame_locator)
         self.marionette.switch_to_frame(marketplace_frame)
