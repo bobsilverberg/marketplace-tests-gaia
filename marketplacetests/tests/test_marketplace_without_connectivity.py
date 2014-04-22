@@ -26,7 +26,7 @@ class TestMarketplaceWithoutConnectivity(MarketplaceGaiaTestCase):
 
     def test_marketplace_without_connectivity(self):
         marketplace = Marketplace(self.marionette, self.MARKETPLACE_DEV_NAME)
-        marketplace.launch()
+        marketplace.launch(False)
 
         self.apps.switch_to_displayed_app()
 

@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+import time
 
 from gaiatest.gaia_test import GaiaTestCase
 from marionette.by import By
@@ -12,9 +13,11 @@ class MarketplaceGaiaTestCase(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.wait_for_element_not_displayed('id', 'os-logo')
+        # Settle time to address numerous intermittent failures
+        time.sleep(30)
         self.install_certs()
         self.connect_to_network()
-        self.wait_for_element_not_displayed('id', 'os-logo')
         self.install_marketplace()
 
     def install_certs(self):
