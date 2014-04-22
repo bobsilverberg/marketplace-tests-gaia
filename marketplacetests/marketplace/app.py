@@ -15,7 +15,7 @@ class Marketplace(Base):
     _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
 
     _gallery_apps_locator = (By.CSS_SELECTOR, '#gallery .app')
-    _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
+    _splash_overlay_locator = (By.ID, 'splash-overlay')
     _error_title_locator = (By.CSS_SELECTOR, 'h1.title')
     _error_message_locator = (By.CSS_SELECTOR, 'span.message')
     _settings_button_locator = (By.CSS_SELECTOR, 'a.header-button.settings')
@@ -45,9 +45,16 @@ class Marketplace(Base):
 
     def launch(self, expect_success=True):
         Base.launch(self, launch_timeout=120000)
-        self.wait_for_element_not_displayed(*self._loading_fragment_locator)
+        self.wait_for_element_not_displayed(*self._splash_overlay_locator)
         if expect_success:
+            self.wait_for_condition(lambda m: self.is_marketplace_loaded,
+                                    message='Marketplace did not load within the timeout')
             self.wait_for_element_displayed(*self._search_locator)
+
+    @property
+    def is_marketplace_loaded(self):
+        body_classes = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('class')
+        return 'loaded' in body_classes and 'overlayed' not in body_classes
 
     def login(self, user):
 
