@@ -10,18 +10,19 @@ from gaiatest.apps.base import Base
 class Marketplace(Base):
 
     # Default to the Dev app
-    name = 'Dev'
+    name = 'Marketplace'
+    manifest_url = "https://marketplace.firefox.com/app/965bbfd7-936d-451d-bebf-fafdc7ce8d9e/manifest.webapp"
 
     _marketplace_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
 
-    _gallery_apps_locator = (By.CSS_SELECTOR, '#gallery .app')
+    _gallery_apps_locator = (By.CSS_SELECTOR, '.app')
     _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
-    _offline_message_locator = (By.CSS_SELECTOR, 'div.offline-message')
+    _offline_message_locator = (By.CSS_SELECTOR, 'div.error-message[data-l10n="offline"]')
     _settings_button_locator = (By.CSS_SELECTOR, '.mobile .header-button.settings')
     _home_button_locator = (By.CSS_SELECTOR, 'h1.site a')
     _back_button_locator = (By.ID, 'nav-back')
     _notification_locator = (By.ID, 'notification-content')
-    _popular_apps_tab_locator = (By.CSS_SELECTOR, '#gallery .tabs a:nth-child(1)')
+    _popular_apps_tab_locator = (By.CSS_SELECTOR, 'a[href="/popular"]')
 
     # Marketplace settings tabs
     _account_tab_locator = (By.CSS_SELECTOR, 'a[href="/settings"]')
@@ -57,13 +58,12 @@ class Marketplace(Base):
         marketplace_frame = self.marionette.find_element(*self._marketplace_frame_locator)
         self.marionette.switch_to_frame(marketplace_frame)
 
-    def login(self, user):
-
+    def login(self, username, password):
         settings = self.tap_settings()
-        persona = settings.tap_sign_in()
-        persona.login(user.email, user.password)
+        ff_accounts = settings.tap_sign_in()
+        ff_accounts.login(username, password)
         self.switch_to_marketplace_frame()
-        settings.wait_for_sign_out_button()
+        self.wait_for_notification_message_displayed(timeout=2000)
         self.wait_for_notification_message_not_displayed()
         return settings
 
@@ -72,7 +72,7 @@ class Marketplace(Base):
         self.wait_for_element_displayed(*self._offline_message_locator)
         return self.marionette.find_element(*self._offline_message_locator).text
 
-    def wait_for_notification_message_displayed(self):
+    def wait_for_notification_message_displayed(self, timeout=None):
         self.wait_for_element_displayed(*self._notification_locator)
 
     def wait_for_notification_message_not_displayed(self):
@@ -125,8 +125,8 @@ class Marketplace(Base):
         raise Exception('The app: %s was not found.' % app_name)
 
     def show_popular_apps(self):
+        self.wait_for_element_displayed(*self._popular_apps_tab_locator)
         self.marionette.find_element(*self._popular_apps_tab_locator).tap()
-        self.wait_for_condition(lambda m: 'active' in m.find_element(*self._popular_apps_tab_locator).get_attribute('class'))
 
     def tap_settings(self):
         self.wait_for_element_displayed(*self._settings_button_locator)
@@ -153,7 +153,6 @@ class Marketplace(Base):
         feedback = self.marionette.find_element(*self._feedback_textarea_locator)
         feedback.clear()
         feedback.send_keys(feedback_text)
-        self.keyboard.dismiss()
         self.switch_to_marketplace_frame()
 
     def submit_feedback(self):

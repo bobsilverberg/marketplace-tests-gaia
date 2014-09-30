@@ -5,7 +5,6 @@
 import os
 
 from gaiatest.gaia_test import GaiaTestCase
-from marionette.by import By
 
 
 class MarketplaceGaiaTestCase(GaiaTestCase):
@@ -17,7 +16,7 @@ class MarketplaceGaiaTestCase(GaiaTestCase):
         self.wait_for_element_not_displayed('id', 'os-logo')
 
         # Use this to override the Marketplace app version
-        self.MARKETPLACE_DEV_NAME = 'Dev'
+        self.MARKETPLACE_DEV_NAME = 'Marketplace'
 
     def install_certs(self):
         """ Install the marketplace-dev certs and set the pref required """
