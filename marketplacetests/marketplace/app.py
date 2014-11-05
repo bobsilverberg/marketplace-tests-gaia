@@ -23,6 +23,7 @@ class Marketplace(Base):
     _back_button_locator = (By.ID, 'nav-back')
     _notification_locator = (By.ID, 'notification-content')
     _popular_apps_tab_locator = (By.CSS_SELECTOR, 'a[href="/popular"]')
+    _popular_apps_section_locator = (By.CSS_SELECTOR, 'section[data-type="popular"]')
 
     # Marketplace settings tabs
     _account_tab_locator = (By.CSS_SELECTOR, 'a[href="/settings"]')
@@ -127,6 +128,7 @@ class Marketplace(Base):
     def show_popular_apps(self):
         self.wait_for_element_displayed(*self._popular_apps_tab_locator)
         self.marionette.find_element(*self._popular_apps_tab_locator).tap()
+        self.wait_for_element_displayed(*self._gallery_apps_locator)
 
     def tap_settings(self):
         self.wait_for_element_displayed(*self._settings_button_locator)
