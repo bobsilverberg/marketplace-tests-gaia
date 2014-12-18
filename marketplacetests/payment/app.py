@@ -13,10 +13,10 @@ class Payment(Base):
     _payment_frame_locator = (By.CSS_SELECTOR, "#trustedui-frame-container > iframe")
 
     # Create/confirm PIN
-    _create_pin_form_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/create"]')
-    _pin_input_locator = (By.CSS_SELECTOR, 'div.pinbox span')
-    _confirm_pin_form_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/confirm"]')
-    _pin_continue_button_locator = (By.CSS_SELECTOR, '#pin > footer > button')
+    # _create_pin_form_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/create"]')
+    _pin_input_locator = (By.ID, 'pin')
+    # _confirm_pin_form_locator = (By.CSS_SELECTOR, 'form[action="/mozpay/pin/confirm"]')
+    _pin_continue_button_locator = (By.CSS_SELECTOR, 'button.cta')
 
     # Final buy app panel
     _app_name_locator = (By.CSS_SELECTOR, '.product .title')
@@ -38,17 +38,20 @@ class Payment(Base):
         return self.marionette.find_element(*self._app_name_locator).text
 
     def create_pin(self, pin):
-        self.wait_for_element_displayed(*self._create_pin_form_locator)
+        import time
+        time.sleep(10)
+        print self.marionette.page_source
+        # self.wait_for_element_displayed(*self._pin_input_locator)
         self.type_pin_number(pin)
         self.tap_pin_continue()
-        self.wait_for_element_displayed(*self._confirm_pin_form_locator)
+        self.wait_for_element_displayed(*self._pin_input_locator)
         self.type_pin_number(pin)
         self.tap_pin_continue()
 
     def type_pin_number(self, pin):
         keyboard = Keyboard(self.marionette)
-        self.marionette.find_element(*self._pin_input_locator).tap()
-        keyboard.switch_to_keyboard()
+        # self.marionette.find_element(*self._pin_input_locator).tap()
+        # keyboard.switch_to_keyboard()
         for num in pin:
             keyboard._tap(num)
         self.switch_to_payment_frame()
