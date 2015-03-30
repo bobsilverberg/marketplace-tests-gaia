@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from fxapom.fxapom import FxATestAccount
 from marionette import Wait
 
 from marketplacetests.in_app_payments.in_app import InAppPayment
@@ -11,35 +12,39 @@ from marketplacetests.marketplace_gaia_test import MarketplaceGaiaTestCase
 
 class TestMakeInAppPayment(MarketplaceGaiaTestCase):
 
+    test_data = {
+        'app_name': 'Testing In-App-Payments',
+        'app_title': 'In-App-Payments',
+        'server': 'marketplace-dev.allizom.org',
+        'pin': '1234',
+        'product': 'test 0.99 USD'}
+
     def test_make_an_in_app_payment(self):
 
-        self.app_name = 'Testing In-App-Payments'
-        app_title = 'In-App-Payments'
-        pin = '1234'
-
-        self.create_account_and_change_its_region()
-        self.install_in_app_payments_test_app()
+        homescreen = self.install_in_app_payments_test_app(self.test_data['app_name'])
 
         # Verify that the app icon is visible on one of the homescreen pages
         self.assertTrue(
-            self.homescreen.is_app_installed(self.app_name),
-            'App %s not found on homescreen' % self.app_name)
+            homescreen.is_app_installed(self.test_data['app_name']),
+            'App %s not found on homescreen' % self.test_data['app_name'])
 
         # Click icon and wait for h1 element displayed
-        self.homescreen.installed_app(self.app_name).tap_icon()
-        Wait(self.marionette).until(lambda m: m.title == app_title)
+        homescreen.installed_app(self.test_data['app_name']).tap_icon()
+        Wait(self.marionette).until(lambda m: m.title == self.test_data['app_title'])
 
-        tester_app = InAppPayment(self.marionette)
-        fxa = tester_app.tap_buy_product()
-        fxa.login(self.acct.email, self.acct.password)
+        acct = FxATestAccount(base_url=self.base_url).create_account()
+
+        tester_app = InAppPayment(self.marionette, self.test_data['server'])
+        fxa = tester_app.tap_buy_product(self.test_data['product'])
+        fxa.login(acct.email, acct.password)
 
         payment = Payment(self.marionette)
-        payment.create_pin(pin)
+        payment.create_pin(self.test_data['pin'])
 
         self.assertEqual('Confirm Payment', payment.confirm_payment_header_text)
-        self.assertEqual('test 0.10USD', payment.in_app_product_name)
+        self.assertEqual(self.test_data['product'], payment.in_app_product_name)
 
-        payment.tap_buy_button()
-        self.apps.switch_to_displayed_app()
+        payment.tap_in_app_buy_button()
+        # self.apps.switch_to_displayed_app()
         tester_app.wait_for_bought_products_displayed()
-        self.assertEqual('test 0.10USD', tester_app.bought_product_text)
+        self.assertEqual(self.test_data['product'], tester_app.bought_product_text)
