@@ -6,8 +6,8 @@ from marionette import Wait
 from fxapom.fxapom import FxATestAccount
 
 from marketplacetests.firefox_accounts.app import FirefoxAccounts
-from marketplacetests.payment.app import Payment
-from marketplacetests.in_app_payments.in_app import InAppPayment
+from marketplacetests.payment.app import InAppPayment
+from marketplacetests.in_app_payments.in_app import InAppPaymentTester
 from marketplacetests.marketplace_gaia_test import MarketplaceGaiaTestCase
 
 
@@ -16,7 +16,6 @@ class TestNotYouLinkInAppPayment(MarketplaceGaiaTestCase):
     test_data = {
         'app_name': 'Testing In-App-Payments',
         'app_title': 'In-App-Payments',
-        'server': 'marketplace-dev.allizom.org',
         'product': 'test 0.99 USD'}
 
     def test_not_you_link_in_app_payment(self):
@@ -34,11 +33,11 @@ class TestNotYouLinkInAppPayment(MarketplaceGaiaTestCase):
 
         acct = FxATestAccount(base_url=self.base_url).create_account()
 
-        tester_app = InAppPayment(self.marionette, self.test_data['server'])
+        tester_app = InAppPaymentTester(self.marionette)
         fxa = tester_app.tap_buy_product(self.test_data['product'])
         fxa.login(acct.email, acct.password)
 
-        payment = Payment(self.marionette)
+        payment = InAppPayment(self.marionette)
         payment.tap_cancel_pin()
 
         fxa = tester_app.tap_buy_product(self.test_data['product'])

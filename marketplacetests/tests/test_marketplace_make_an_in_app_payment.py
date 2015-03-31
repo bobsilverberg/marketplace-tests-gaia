@@ -5,8 +5,8 @@
 from fxapom.fxapom import FxATestAccount
 from marionette import Wait
 
-from marketplacetests.in_app_payments.in_app import InAppPayment
-from marketplacetests.payment.app import Payment
+from marketplacetests.in_app_payments.in_app import InAppPaymentTester
+from marketplacetests.payment.app import InAppPayment
 from marketplacetests.marketplace_gaia_test import MarketplaceGaiaTestCase
 
 
@@ -15,7 +15,6 @@ class TestMakeInAppPayment(MarketplaceGaiaTestCase):
     test_data = {
         'app_name': 'Testing In-App-Payments',
         'app_title': 'In-App-Payments',
-        'server': 'marketplace-dev.allizom.org',
         'pin': '1234',
         'product': 'test 0.99 USD'}
 
@@ -34,17 +33,17 @@ class TestMakeInAppPayment(MarketplaceGaiaTestCase):
 
         acct = FxATestAccount(base_url=self.base_url).create_account()
 
-        tester_app = InAppPayment(self.marionette, self.test_data['server'])
+        tester_app = InAppPaymentTester(self.marionette)
         fxa = tester_app.tap_buy_product(self.test_data['product'])
         fxa.login(acct.email, acct.password)
 
-        payment = Payment(self.marionette)
+        payment = InAppPayment(self.marionette)
         payment.create_pin(self.test_data['pin'])
 
         self.assertEqual('Confirm Payment', payment.confirm_payment_header_text)
         self.assertEqual(self.test_data['product'], payment.in_app_product_name)
 
-        payment.tap_in_app_buy_button()
+        payment.tap_buy_button()
         # self.apps.switch_to_displayed_app()
         tester_app.wait_for_bought_products_displayed()
         self.assertEqual(self.test_data['product'], tester_app.bought_product_text)

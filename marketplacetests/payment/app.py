@@ -114,9 +114,6 @@ class Payment(Marketplace):
     def tap_buy_button(self):
         self._tap_payment_button(self._buy_button_locator)
 
-    def tap_in_app_buy_button(self):
-        self._tap_payment_button(self._buy_button_locator, 'in-app tester')
-
     def tap_forgot_pin(self):
         self.wait_for_element_displayed(*self._forgot_pin_locator)
         self.marionette.find_element(*self._forgot_pin_locator).tap()
@@ -125,6 +122,7 @@ class Payment(Marketplace):
         button = Wait(self.marionette).until(
             expected.element_present(*self._reset_pin_button_locator))
         Wait(self.marionette).until(expected.element_displayed(button))
+        Wait(self.marionette).until(expected.element_enabled(button))
         # This workaround is required for gaia v2.0, but can be removed in later versions
         # as the bug has been fixed
         # Bug 937053 - tap() method should calculate elementInView from the coordinates of the tap
@@ -134,7 +132,7 @@ class Payment(Marketplace):
     def tap_cancel_button(self):
         self._tap_payment_button(self._cancel_button_locator)
 
-    def _tap_payment_button(self, button_locator, return_to='marketplace'):
+    def _tap_payment_button(self, button_locator):
         self.marionette.switch_to_frame()
         self.wait_for_element_not_displayed(*self._loading_throbber_locator)
         payment_iframe = self.marionette.find_element(*self._payment_frame_locator)
@@ -143,7 +141,13 @@ class Payment(Marketplace):
         self.marionette.find_element(*button_locator).tap()
         self.marionette.switch_to_frame()
         self.wait_for_element_not_present(*self._payment_frame_locator)
-        if return_to == 'marketplace':
-            self.switch_to_marketplace_frame()
-        else:
-            self.apps.switch_to_displayed_app()
+        self.return_to_app()
+
+    def return_to_app(self):
+        self.switch_to_marketplace_frame()
+
+
+class InAppPayment(Payment):
+
+    def return_to_app(self):
+        self.apps.switch_to_displayed_app()

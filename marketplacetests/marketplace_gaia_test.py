@@ -33,17 +33,19 @@ class MarketplaceGaiaTestCase(GaiaTestCase):
 
         homescreen = Homescreen(self.marionette)
 
-        if not self.apps.is_app_installed(app_name):
+        # Remove the app if already installed
+        if self.apps.is_app_installed(app_name):
+            self.apps.uninstall(app_name)
 
-            marketplace = Marketplace(self.marionette, self.MARKETPLACE_DEV_NAME)
-            home_page = marketplace.launch()
-            details_page = home_page.navigate_to_app(app_name)
-            details_page.tap_install_button()
-            self.wait_for_downloads_to_finish()
+        marketplace = Marketplace(self.marionette, self.MARKETPLACE_DEV_NAME)
+        home_page = marketplace.launch()
+        details_page = home_page.navigate_to_app(app_name)
+        details_page.tap_install_button()
+        self.wait_for_downloads_to_finish()
 
-            # Confirm the installation and wait for the app icon to be present
-            confirm_install = ConfirmInstall(self.marionette)
-            confirm_install.tap_confirm()
+        # Confirm the installation and wait for the app icon to be present
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
 
         self.device.touch_home_button()
         self.apps.switch_to_displayed_app()
