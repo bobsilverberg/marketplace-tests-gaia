@@ -14,17 +14,14 @@ class InAppPayment(Base):
     # Products
     _available_products_locator = (By.ID, 'items')
     _available_product_locator = (By.CSS_SELECTOR, '#items li')
-    _bought_product_locator = (By.CSS_SELECTOR, '#bought .item > h4')
+    _bought_products_locator = (By.ID, 'bought')
+    _bought_product_locator = (By.CSS_SELECTOR, '#bought li.item')
     _server_select_locator = (By.ID, 'server')
 
     def __init__(self, marionette, server):
         Base.__init__(self, marionette)
         self.apps.switch_to_displayed_app()
         self.set_server('API: %s' % server)
-
-    @property
-    def bought_product_text(self):
-        return self.marionette.find_element(*self._bought_product_locator).text
 
     def set_server(self, server):
         element = self.marionette.find_element(*self._server_select_locator)
@@ -40,8 +37,11 @@ class InAppPayment(Base):
         raise Exception('Unable to find and tap on product %s.'
                         % name)
 
-    def wait_for_bought_products_displayed(self):
-        self.wait_for_element_displayed(*self._bought_product_locator)
+    def is_product_bought(self, name):
+        for product in self.bought_products:
+            if product.name == name:
+                return True
+        return False
 
     @property
     def available_products(self):
@@ -49,6 +49,14 @@ class InAppPayment(Base):
             expected.element_present(*self._available_products_locator))
         Wait(self.marionette).until(expected.element_displayed(element))
         products = self.marionette.find_elements(*self._available_product_locator)
+        return [Product(self.marionette, product) for product in products]
+
+    @property
+    def bought_products(self):
+        element = Wait(self.marionette).until(
+            expected.element_present(*self._bought_products_locator))
+        Wait(self.marionette).until(expected.element_displayed(element))
+        products = self.marionette.find_elements(*self._bought_product_locator)
         return [Product(self.marionette, product) for product in products]
 
 

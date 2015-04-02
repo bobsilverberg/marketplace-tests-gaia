@@ -45,6 +45,5 @@ class TestMakeInAppPayment(MarketplaceGaiaTestCase):
         self.assertEqual(self.test_data['product'], payment.in_app_product_name)
 
         payment.tap_in_app_buy_button()
-        # self.apps.switch_to_displayed_app()
-        tester_app.wait_for_bought_products_displayed()
-        self.assertEqual(self.test_data['product'], tester_app.bought_product_text)
+
+        Wait(self.marionette).until(lambda m: tester_app.is_product_bought(self.test_data['product']))
