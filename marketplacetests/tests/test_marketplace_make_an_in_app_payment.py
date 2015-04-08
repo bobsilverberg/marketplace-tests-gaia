@@ -20,6 +20,7 @@ class TestMakeInAppPayment(MarketplaceGaiaTestCase):
 
     def test_make_an_in_app_payment(self):
 
+        acct = FxATestAccount(base_url=self.base_url).create_account()
         homescreen = self.install_in_app_payments_test_app(self.test_data['app_name'])
 
         # Verify that the app icon is visible on one of the homescreen pages
@@ -27,14 +28,11 @@ class TestMakeInAppPayment(MarketplaceGaiaTestCase):
             homescreen.is_app_installed(self.test_data['app_name']),
             'App %s not found on homescreen' % self.test_data['app_name'])
 
-        # Click icon and wait for h1 element displayed
-        homescreen.installed_app(self.test_data['app_name']).tap_icon()
+        self.tester_app = InAppPaymentTester(self.marionette, self.test_data['app_name'])
+        self.tester_app.launch()
         Wait(self.marionette).until(lambda m: m.title == self.test_data['app_title'])
 
-        acct = FxATestAccount(base_url=self.base_url).create_account()
-
-        tester_app = InAppPaymentTester(self.marionette)
-        fxa = tester_app.tap_buy_product(self.test_data['product'])
+        fxa = self.tester_app.tap_buy_product(self.test_data['product'])
         fxa.login(acct.email, acct.password)
 
         payment = InAppPayment(self.marionette)
@@ -44,6 +42,9 @@ class TestMakeInAppPayment(MarketplaceGaiaTestCase):
         self.assertEqual(self.test_data['product'], payment.in_app_product_name)
 
         payment.tap_buy_button()
-        # self.apps.switch_to_displayed_app()
-        tester_app.wait_for_bought_products_displayed()
-        self.assertEqual(self.test_data['product'], tester_app.bought_product_text)
+        self.tester_app.wait_for_bought_products_displayed()
+        self.assertEqual(self.test_data['product'], self.tester_app.bought_product_text)
+
+    def tearDown(self):
+        self.apps.uninstall(self.test_data['app_name'])
+        MarketplaceGaiaTestCase.tearDown(self)

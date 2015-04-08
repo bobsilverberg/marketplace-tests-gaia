@@ -14,13 +14,16 @@ class InAppPaymentTester(Base):
     default_server = 'API: marketplace-dev.allizom.org'
 
     # Products
-    _available_products_locator = (By.ID, 'items')
     _available_product_locator = (By.CSS_SELECTOR, '#items li')
     _bought_product_locator = (By.CSS_SELECTOR, '#bought .item > h4')
     _server_select_locator = (By.ID, 'server')
 
-    def __init__(self, marionette, server=default_server):
+    def __init__(self, marionette, name):
         Base.__init__(self, marionette)
+        self.name = name
+
+    def launch(self, server=default_server):
+        Base.launch(self, launch_timeout=120000)
         self.apps.switch_to_displayed_app()
         self.set_server(server)
 
@@ -47,11 +50,8 @@ class InAppPaymentTester(Base):
 
     @property
     def available_products(self):
-        element = Wait(self.marionette).until(
-            expected.element_present(*self._available_products_locator))
-        Wait(self.marionette).until(expected.element_displayed(element))
-        products = self.marionette.find_elements(*self._available_product_locator)
-        Wait(self.marionette).until(lambda m: len(products) > 0)
+        products = Wait(self.marionette).until(
+            expected.elements_present(*self._available_product_locator))
         return [Product(self.marionette, product) for product in products]
 
 
