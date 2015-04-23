@@ -14,7 +14,7 @@ class TestMarketplaceFeedback(MarketplaceGaiaTestCase):
         marketplace = Marketplace(self.marionette, self.MARKETPLACE_DEV_NAME)
         home_page = marketplace.launch()
 
-        feedback = home_page.nav_menu.tap_feedback()
+        feedback = home_page.show_menu().tap_feedback()
         feedback.enter_feedback(test_comment)
         feedback.submit_feedback()
 

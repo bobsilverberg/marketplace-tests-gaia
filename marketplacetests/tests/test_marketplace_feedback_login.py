@@ -18,7 +18,7 @@ class TestMarketplaceFeedback(MarketplaceGaiaTestCase):
         home_page = marketplace.launch()
         home_page.login(acct.email, acct.password)
 
-        feedback = home_page.nav_menu.tap_feedback()
+        feedback = home_page.show_menu().tap_feedback()
         feedback.enter_feedback(test_comment)
         feedback.submit_feedback()
 

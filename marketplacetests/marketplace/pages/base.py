@@ -12,7 +12,7 @@ class BasePage(Marketplace):
 
     _body_loaded_locator = (By.CSS_SELECTOR, 'body.loaded')
     _back_button_locator = (By.CSS_SELECTOR, '#site-header a.header-button.back')
-
+    _nav_menu_toggle_locator = (By.CSS_SELECTOR, 'mkt-nav-toggle button')
     _home_button_locator = (By.CSS_SELECTOR, 'h1.site a')
     _notification_locator = (By.ID, 'notification-content')
 
@@ -30,7 +30,7 @@ class BasePage(Marketplace):
         self.wait_for_page_loaded()
 
     def login(self, username, password):
-        ff_accounts = self.nav_menu.tap_sign_in()
+        ff_accounts = self.show_menu().tap_sign_in()
         ff_accounts.login(username, password)
         self.switch_to_marketplace_frame()
         self.wait_for_login_success_notification()
@@ -130,32 +130,21 @@ class BasePage(Marketplace):
         self.wait_for_element_displayed(*self._install_notification_locator)
         return self.marionette.find_element(*self._install_notification_locator).text
 
-    @property
-    def nav_menu(self):
+    def show_menu(self):
+        self.marionette.find_element(*self._nav_menu_toggle_locator).tap()
+        body = self.marionette.find_element(By.TAG_NAME, 'body')
+        Wait(self.marionette).until(
+            lambda m: 'mkt-nav--visible' in body.get_attribute('class'))
         return NavMenu(self.marionette)
 
 
 class NavMenu(Marketplace):
 
-    _nav_menu_toggle_locator = (By.CSS_SELECTOR, 'mkt-nav-toggle button')
-    _categories_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link[title="Categories"]')
     _feedback_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link[href*="feedback"]')
-    _home_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link[title="Home"]')
-    _my_apps_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link[href*="purchases"]')
-    _new_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link[href*="new"]')
-    _popular_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link[href*="popular"]')
     _settings_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link[href*="settings"]')
     _sign_in_menu_item_locator = (By.CSS_SELECTOR, '.mkt-nav--link.persona:not(.register)')
 
-    def open(self):
-        body = self.marionette.find_element(By.TAG_NAME, 'body')
-        if not 'mkt-nav--visible' in body.get_attribute('class'):
-            self.marionette.find_element(*self._nav_menu_toggle_locator).tap()
-            Wait(self.marionette).until(
-                lambda m: 'mkt-nav--visible' in body.get_attribute('class'))
-
     def tap_settings(self):
-        self.open()
         settings_item = self.marionette.find_element(*self._settings_menu_item_locator)
         Wait(self.marionette).until(expected.element_displayed(settings_item))
         settings_item.tap()
@@ -163,7 +152,6 @@ class NavMenu(Marketplace):
         return Settings(self.marionette)
 
     def tap_feedback(self):
-        self.open()
         feedback_item = self.marionette.find_element(*self._feedback_menu_item_locator)
         Wait(self.marionette).until(expected.element_displayed(feedback_item))
         feedback_item.tap()
@@ -171,7 +159,6 @@ class NavMenu(Marketplace):
         return Feedback(self.marionette)
 
     def tap_sign_in(self):
-        self.open()
         sign_in_item = self.marionette.find_element(*self._sign_in_menu_item_locator)
         Wait(self.marionette).until(expected.element_displayed(sign_in_item))
         sign_in_item.tap()
